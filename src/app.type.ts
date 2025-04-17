@@ -11,14 +11,19 @@ export type TDepositSubmitReq = {
 };
 
 export type TDepositSubmitRes = {
+  id: string;
   depositAddress: string;
-  createdAt: number;
-  expireAt: number;
+  createdAt: bigint;
+  expireAt: bigint;
   depositAmountUsdt: number;
+  displayFeeUsdt: number;
   fees: {
-    agent: number;
-    platform: number;
+    xcRateFeePlatform: number;
+    xcRateFeeAgent: number;
+    flatFeePlatform: number;
+    flatFeeAgent: number;
   };
+  minDepositUsdt: number;
   customerId: string;
   currency: string;
   amountLocal: number;
@@ -59,7 +64,45 @@ export type TWithdrawSubmitRes = {
   isApprovalRequired: boolean;
 };
 
+export type TCustomerHistoryReq = {
+  customerId: string;
+  agentCode: string;
+};
+
+export type TCustomerEventItem = {
+  serialNumber: number;
+  txHash: string;
+  status: string;
+  tStamp: number;
+  amountUsdt: number;
+  amountLocal: number;
+  fee: number;
+};
+
+export type TCustomerHistoryRes = {
+  events: TCustomerEventItem[];
+};
+
 export type TTetherReaderReq =
   | TDepositSubmitReq
   | TWithdrawInquireReq
-  | TWithdrawSubmitReq;
+  | TWithdrawSubmitReq
+  | TCustomerHistoryReq;
+
+export type TDepositCallbackReq = {
+  quotationId?: string;
+  amountUsdt: string;
+  exchangeRate: string;
+  feesDeductedAmountUsdt: string;
+  suggestedAmountLocalUnit: string;
+  fees: {
+    agent: string;
+    platform: string;
+  };
+  currency: string;
+  uuid: string;
+  customerId: string;
+  transferedAt: number;
+  status: string;
+  description: string;
+};
