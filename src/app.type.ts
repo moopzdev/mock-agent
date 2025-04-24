@@ -64,6 +64,16 @@ export type TWithdrawSubmitRes = {
   isApprovalRequired: boolean;
 };
 
+export type TGetTokenReq = {
+  agentCode: string;
+  customerId: string;
+  timestamp: number;
+};
+
+export type TGetTokenRes = {
+  uuid: string;
+};
+
 export type TCustomerHistoryReq = {
   customerId: string;
   agentCode: string;
@@ -87,7 +97,8 @@ export type TTetherReaderReq =
   | TDepositSubmitReq
   | TWithdrawInquireReq
   | TWithdrawSubmitReq
-  | TCustomerHistoryReq;
+  | TCustomerHistoryReq
+  | TGetTokenReq;
 
 export type TDepositCallbackReq = {
   quotationId?: string;

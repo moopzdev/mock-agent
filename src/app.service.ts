@@ -7,6 +7,8 @@ import {
   TDepositCallbackReq,
   TDepositSubmitReq,
   TDepositSubmitRes,
+  TGetTokenReq,
+  TGetTokenRes,
   TTetherReaderReq,
   TWithdrawInquireReq,
   TWithdrawInquireRes,
@@ -18,15 +20,36 @@ import {
 
 // Mock - Agent MT
 export class AppService {
-  private readonly TETHER_READER_API_URL =
-    'https://ethpay-dev-core-api.campeon66.com/';
+  private readonly TETHER_READER_API_URL = 'http://localhost:13000/';
+  // 'https://ethpay-dev-core-api.campeon66.com/';
   private readonly logger = new Logger();
-  private readonly mockAgentDB = new Map<string, TDepositCallbackReq>();
+  private readonly depositDB = new Map<string, TDepositCallbackReq>();
+  private readonly customerDB = new Map<string, number>();
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) {
+    //initialize customerDB
+    this.customerDB.set('customer01', 1000);
+    this.customerDB.set('customer02', 2000);
+    this.customerDB.set('customer03', 3000);
+    this.customerDB.set('customer04', 4000);
+    this.customerDB.set('customer05', 5000);
+  }
 
   getHello(): string {
     return 'Agent Server Functional; Ready to accept requests!';
+  }
+
+  getCustomerBalance(args: { customerId: string }) {
+    const { customerId } = args;
+    const balance = this.customerDB.get(customerId);
+    if (balance === undefined) {
+      throw new Error('Customer not found');
+    }
+    return {
+      customerId,
+      balance,
+      currency: 'THB',
+    };
   }
 
   // deposit/submit
@@ -170,13 +193,26 @@ export class AppService {
   callbackDeposit(args: TDepositCallbackReq) {
     const { quotationId } = args;
     if (quotationId) {
-      this.mockAgentDB.set(quotationId, args);
+      this.depositDB.set(quotationId, args);
     }
+    console.log('Deposit Callback Received:', args);
+
+    const currentBalance = this.customerDB.get(args.customerId);
+
+    const newBalance = Number(args.amountUsdt) + (currentBalance ?? 0);
+
+    this.customerDB.set(args.customerId, newBalance);
+
+    return {
+      status: 'success',
+      customerId: args.customerId,
+      balance: newBalance,
+    };
   }
 
   getDepositStatus(args: { quotationId: string }) {
     const { quotationId: uuid } = args;
-    const res = this.mockAgentDB.get(uuid);
+    const res = this.depositDB.get(uuid);
     if (!res) {
       throw new Error('Deposit not found');
     }
@@ -190,6 +226,20 @@ export class AppService {
     };
 
     return transformedResponse;
+  }
+
+  async getTokenFromEthPay(args: { customerId: string }) {
+    const { customerId } = args;
+    const trReqData: TGetTokenReq = {
+      agentCode: 'ag1',
+      customerId,
+      timestamp: 1742356776963,
+    };
+    const res = (await this.makeHttpRequest({
+      url: this.TETHER_READER_API_URL + 'auth/token/generate',
+      data: trReqData,
+    })) as TGetTokenRes;
+    return res;
   }
 
   private async makeHttpRequest(args: {
