@@ -30,14 +30,6 @@ export class AppController {
     return result;
   }
 
-  // //Deposit
-  // @Post('deposit/submit')
-  // @ApiBody({ schema: { example: { amount: 300 } } })
-  // async submitDeposit(@Body() body: { amount: number }) {
-  //   const result = await this.appService.submitDeposit(body);
-  //   return result;
-  // }
-
   @Post('deposit/callback')
   @ApiBody({
     schema: {
@@ -63,6 +55,15 @@ export class AppController {
     const result = this.appService.callbackDeposit(body);
     return result;
   }
+
+  // OLD API ENDPOINTS MARKED FOR DELETE
+  // //Deposit
+  // @Post('deposit/submit')
+  // @ApiBody({ schema: { example: { amount: 300 } } })
+  // async submitDeposit(@Body() body: { amount: number }) {
+  //   const result = await this.appService.submitDeposit(body);
+  //   return result;
+  // }
 
   // @Post('deposit/status')
   // @ApiBody({
