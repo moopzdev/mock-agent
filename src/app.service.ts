@@ -15,6 +15,7 @@ import {
   TWithdrawSubmitReq,
   TWithdrawSubmitRes,
 } from './app.type';
+import Decimal from 'decimal.js';
 
 @Injectable()
 
@@ -199,6 +200,7 @@ export class AppService {
 
     const currentBalance = this.customerLocalDB.get(args.customerId);
     console.log(currentBalance);
+    console.log(args.suggestedAmountLocalUnit);
     const newBalance =
       Number(args.suggestedAmountLocalUnit) + (currentBalance ?? 0);
 
@@ -251,16 +253,20 @@ export class AppService {
   }) {
     const { customerId, amountLocal } = body;
     const currentBalance = this.customerLocalDB.get(customerId) ?? 0;
-    const newBalance = currentBalance - Number(amountLocal);
+    const newBalance = new Decimal(currentBalance).sub(
+      new Decimal(amountLocal),
+    );
+
     console.log({ currentBalance });
     let approve = false;
-    if (newBalance < 0) {
+    if (newBalance.neg()) {
       console.log('Insufficient balance');
     } else {
-      this.customerLocalDB.set(customerId, newBalance);
       console.log({ newBalance });
       approve = true;
     }
+    this.customerLocalDB.set(customerId, newBalance.toNumber());
+
     const res = {
       approve,
     };
