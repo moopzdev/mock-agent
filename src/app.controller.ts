@@ -56,6 +56,23 @@ export class AppController {
     return result;
   }
 
+  @Post('withdraw/approve')
+  @ApiBody({
+    schema: {
+      example: {
+        customerId: 'customer01',
+        amountLocal: '10000.00',
+        currency: 'THB',
+      },
+    },
+  })
+  approveWithdraw(
+    @Body() body: { customerId: string; amountLocal: string; currency: string },
+  ) {
+    const result = this.appService.approveWithdraw(body);
+    return result;
+  }
+
   // OLD API ENDPOINTS MARKED FOR DELETE
   // //Deposit
   // @Post('deposit/submit')

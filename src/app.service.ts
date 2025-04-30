@@ -198,10 +198,11 @@ export class AppService {
     console.log('Deposit Callback Received:', args);
 
     const currentBalance = this.customerDB.get(args.customerId);
-
+    console.log(currentBalance);
     const newBalance = Number(args.amountUsdt) + (currentBalance ?? 0);
 
     this.customerDB.set(args.customerId, newBalance);
+    console.log(newBalance);
 
     return {
       status: 'success',
@@ -239,6 +240,29 @@ export class AppService {
       url: this.TETHER_READER_API_URL + 'auth/token/generate',
       data: trReqData,
     })) as TGetTokenRes;
+    return res;
+  }
+
+  approveWithdraw(body: {
+    customerId: string;
+    amountLocal: string;
+    currency: string;
+  }) {
+    const { customerId, amountLocal } = body;
+    const currentBalance = this.customerDB.get(customerId) ?? 0;
+    const newBalance = currentBalance - Number(amountLocal);
+    console.log({ currentBalance });
+    let approve = false;
+    if (newBalance < 0) {
+      console.log('Insufficient balance');
+    } else {
+      this.customerDB.set(customerId, newBalance);
+      console.log({ newBalance });
+      approve = true;
+    }
+    const res = {
+      approve,
+    };
     return res;
   }
 
