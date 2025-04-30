@@ -24,15 +24,15 @@ export class AppService {
   // 'https://ethpay-dev-core-api.campeon66.com/';
   private readonly logger = new Logger();
   private readonly depositDB = new Map<string, TDepositCallbackReq>();
-  private readonly customerDB = new Map<string, number>();
+  private readonly customerLocalDB = new Map<string, number>();
 
   constructor(private readonly httpService: HttpService) {
     //initialize customerDB
-    this.customerDB.set('customer01', 1000);
-    this.customerDB.set('customer02', 2000);
-    this.customerDB.set('customer03', 3000);
-    this.customerDB.set('customer04', 4000);
-    this.customerDB.set('customer05', 5000);
+    this.customerLocalDB.set('customer01', 1000);
+    this.customerLocalDB.set('customer02', 2000);
+    this.customerLocalDB.set('customer03', 3000);
+    this.customerLocalDB.set('customer04', 4000);
+    this.customerLocalDB.set('customer05', 5000);
   }
 
   getHello(): string {
@@ -41,7 +41,7 @@ export class AppService {
 
   getCustomerBalance(args: { customerId: string }) {
     const { customerId } = args;
-    const balance = this.customerDB.get(customerId);
+    const balance = this.customerLocalDB.get(customerId);
     if (balance === undefined) {
       throw new Error('Customer not found');
     }
@@ -197,11 +197,12 @@ export class AppService {
     }
     console.log('Deposit Callback Received:', args);
 
-    const currentBalance = this.customerDB.get(args.customerId);
+    const currentBalance = this.customerLocalDB.get(args.customerId);
     console.log(currentBalance);
-    const newBalance = Number(args.amountUsdt) + (currentBalance ?? 0);
+    const newBalance =
+      Number(args.suggestedAmountLocalUnit) + (currentBalance ?? 0);
 
-    this.customerDB.set(args.customerId, newBalance);
+    this.customerLocalDB.set(args.customerId, newBalance);
     console.log(newBalance);
 
     return {
@@ -249,14 +250,14 @@ export class AppService {
     currency: string;
   }) {
     const { customerId, amountLocal } = body;
-    const currentBalance = this.customerDB.get(customerId) ?? 0;
+    const currentBalance = this.customerLocalDB.get(customerId) ?? 0;
     const newBalance = currentBalance - Number(amountLocal);
     console.log({ currentBalance });
     let approve = false;
     if (newBalance < 0) {
       console.log('Insufficient balance');
     } else {
-      this.customerDB.set(customerId, newBalance);
+      this.customerLocalDB.set(customerId, newBalance);
       console.log({ newBalance });
       approve = true;
     }
